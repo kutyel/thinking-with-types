@@ -1,13 +1,12 @@
 name:                haskell
 version:             0.1.0.0
--- synopsis:
--- description:
+synopsis:            Solutions to the exercises of Thinking With Types
 homepage:            https://github.com/githubuser/haskell#readme
 license:             BSD3
 license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2019 Author name here
+author:              Flavio Corpa
+maintainer:          flavio.corpa@47deg.com
+copyright:           2019 @ Flavio Corpa
 category:            Web
 build-type:          Simple
 cabal-version:       >=1.10
