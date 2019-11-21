@@ -7,8 +7,8 @@ module Chapter2 where
 
 import GHC.TypeLits
 
-import Data.Proxy                (Proxy)
 import Control.Monad.Trans.Class (MonadTrans)
+import Data.Proxy                (Proxy)
 
 -- Exercise 2.1.3-i
 -- *Chapter2> :k Show
@@ -104,3 +104,20 @@ type family Bar x y :: Bool -> Bool -> Bool
 -- Bar :: Type -> Type -> Bool -> Bool -> Bool
 
 -- think of closed type families as type-level functions (for now).
+
+-- EXTRA EXTRA!! 🗞🗞🗞
+{- | Check that a type is an element of a list (of types):
+>>> :kind! Elem String '[]
+Elem String '[] :: Bool
+= 'False
+>>> :kind! Elem Bool '[Int, Bool]
+Elem Bool '[Int, Bool] :: Bool
+= 'True
+>>> :kind! Elem String '[Int, Bool]
+Elem String '[Int, Bool] :: Bool
+= 'False
+-}
+type family Elem (e :: t) (es :: [t]) :: Bool where
+  Elem _ '[]       = 'False
+  Elem x (x ': xs) = 'True
+  Elem x (_ ': xs) = Elem x xs
