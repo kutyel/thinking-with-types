@@ -16,5 +16,4 @@ newtype T5 a = T5 ((a -> Int) -> Int) -- covariant (-◦- = +)
 
 instance Functor T5 where
   fmap f (T5 aii) = T5 (\g -> aii $ g . f)
-
 -- Functor instances can only be covariant!

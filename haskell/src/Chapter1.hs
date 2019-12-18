@@ -2,24 +2,25 @@ module Chapter1 where
 
 -- Exercise 1.2-i
 -- Determine the cardinality of `Either Bool (Bool, Maybe Bool) -> Bool`.
--- |Either Bool (Bool, Maybe Bool) -> Bool|
--- |Bool|^|Either Bool (Bool, Maybe Bool)|
--- |Bool|^(|Bool| + |(Bool, Maybe Bool)|)
--- |Bool|^(|Bool| + (|Bool| × |Maybe Bool|))
--- |Bool|^(|Bool| + (|Bool| × (1 + |Bool|)))
--- 2^(2 + (2 × (1 + 2)))
--- 2^(2 + (2 × 3))
--- 2^(2 + 6)
--- 2^8
--- > 256! 🚀
 
+-- | Either Bool (Bool, Maybe Bool) -> Bool|
+--  |Bool|^|Either Bool (Bool, Maybe Bool)|
+--  |Bool|^(|Bool| + |(Bool, Maybe Bool)|)
+--  |Bool|^(|Bool| + (|Bool| × |Maybe Bool|))
+--  |Bool|^(|Bool| + (|Bool| × (1 + |Bool|)))
+--  2^(2 + (2 × (1 + 2)))
+--  2^(2 + (2 × 3))
+--  2^(2 + 6)
+--  2^8
+--  > 256! 🚀
 data Three = One | Two | Three
   deriving (Eq, Ord, Enum, Bounded)
 
 -- 🤯🤯🤯
-newtype TicTacToe a = TicTacToe
-  { board :: Three -> Three -> a
-  }
+newtype TicTacToe a
+  = TicTacToe
+      { board :: Three -> Three -> a
+      }
 
 emptyBoard :: TicTacToe (Maybe Bool)
 emptyBoard = TicTacToe $ const $ const Nothing
@@ -42,8 +43,9 @@ curry f x y = f (y, x)
 -- Exercise 1.4-ii
 -- Give a proof of the exponent law that: a^b × a^c = a^b+c.
 productRuleTo :: (b -> a) -> (c -> a) -> Either b c -> a
-productRuleTo f _ (Left x)  = f x
+productRuleTo f _ (Left x) = f x
 productRuleTo _ g (Right x) = g x
+
 -- productRuleTo == either 🤯
 
 productRuleFrom :: (Either b c -> a) -> (b -> a, c -> a)

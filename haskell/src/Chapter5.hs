@@ -1,24 +1,25 @@
-{-# language ConstraintKinds      #-}
-{-# language DataKinds            #-}
-{-# language FlexibleInstances    #-}
-{-# language GADTs                #-}
-{-# language ScopedTypeVariables  #-}
-{-# language TypeFamilies         #-}
-{-# language TypeOperators        #-}
-{-# language UndecidableInstances #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Chapter5 where
 
-import           Data.Kind (Constraint, Type)
+import Data.Kind (Constraint, Type)
 
 -- my first GADT 😇
 data HList (ts :: [Type]) where
   HNil :: HList '[]
   (:#) :: t -> HList ts -> HList (t ': ts)
+
 infixr 5 :#
 
 hLength :: HList ts -> Int
-hLength HNil      = 0
+hLength HNil = 0
 hLength (_ :# ts) = 1 + hLength ts
 
 hHead :: HList (t ': ts) -> t
@@ -51,21 +52,21 @@ hHead (t :# _) = t
 -- First useful type family!
 
 type family All (c :: Type -> Constraint) (ts :: [Type]) :: Constraint where
-  All c '[]       = ()
+  All c '[] = ()
   All c (t ': ts) = (c t, All c ts)
 
 -- using All to simplify instances!
 
 instance All Eq ts => Eq (HList ts) where
-  HNil == HNil           = True
+  HNil == HNil = True
   (x :# xs) == (y :# ys) = x == y && xs == ys
 
 -- exercise 5.3-iii
 
 instance (All Eq ts, All Ord ts) => Ord (HList ts) where
-  compare HNil HNil           = EQ
+  compare HNil HNil = EQ
   compare (x :# xs) (y :# ys) = compare x y <> compare xs ys
 
 instance All Show ts => Show (HList ts) where
-  show HNil      = "HNil"
+  show HNil = "HNil"
   show (x :# xs) = show x ++ " :# " ++ show xs
