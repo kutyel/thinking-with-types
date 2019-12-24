@@ -12,9 +12,11 @@ module Chapter7 where
 -- TODO: run ormolu in this file
 
 import Data.Foldable (asum)
+import Data.IORef
 import Data.Kind (Constraint, Type)
 import Data.Maybe (fromMaybe)
 import Data.Typeable
+import System.IO.Unsafe (unsafePerformIO)
 
 data Any where
   Any :: a -> Any
@@ -91,3 +93,51 @@ shouldBeFalse =
    in elimHas isMempty foo
 
 -- scoping information with existentials
+
+newtype ST s a = ST
+  { unsafeRunST :: a
+  }
+
+instance Functor (ST s) where
+  fmap f (ST a) = seq a . ST $ f a
+
+instance Applicative (ST s) where
+  pure = ST
+  ST f <*> ST a = seq f . seq a . ST $ f a
+
+instance Monad (ST s) where
+  return = pure
+  ST a >>= f = seq a $ f a
+
+-- mutable variables inside the ST "trick"
+
+newtype STRef s a = STRef
+  { unSTRef :: IORef a
+  }
+
+newSTRef :: a -> ST s (STRef s a)
+newSTRef = pure . STRef . unsafePerformIO . newIORef
+
+readSTRef :: STRef s a -> ST s a
+readSTRef = pure . unsafePerformIO . readIORef . unSTRef
+
+writeSTRef :: STRef s a -> a -> ST s ()
+writeSTRef ref = pure . unsafePerformIO . writeIORef (unSTRef ref)
+
+modifySTRef :: STRef s a -> (a -> a) -> ST s ()
+modifySTRef ref f = do
+  a <- readSTRef ref
+  writeSTRef ref $ f a
+
+runST :: (forall s. ST s a) -> a
+runST = unsafeRunST
+
+-- example of local mutation to return a pure value
+
+safeExample :: ST s String
+safeExample = do
+  ref <- newSTRef "hello"
+  modifySTRef ref (++ " world")
+  readSTRef ref
+
+-- runST safeExample // > "hello world"
