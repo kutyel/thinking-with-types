@@ -9,8 +9,6 @@
 
 module Chapter7 where
 
--- TODO: run ormolu in this file
-
 import Data.Foldable (asum)
 import Data.IORef
 import Data.Kind (Constraint, Type)
@@ -59,12 +57,13 @@ liftD2 d1 d2 f = fmap Dynamic . f <$> fromDynamic @a d1 <*> fromDynamic @b d2
 
 pyPlus :: Dynamic -> Dynamic -> Dynamic
 pyPlus a b =
-  fromMaybe (error "bad types for pyPlus") $ asum
-    [ liftD2 @String @String a b (++)
-    , liftD2 @Int    @Int    a b (+)
-    , liftD2 @String @Int    a b $ \strA intB -> strA ++ show intB
-    , liftD2 @Int    @String a b $ \intA strB -> show intA ++ strB
-    ]
+  fromMaybe (error "bad types for pyPlus") $
+    asum
+      [ liftD2 @String @String a b (++),
+        liftD2 @Int @Int a b (+),
+        liftD2 @String @Int a b $ \strA intB -> strA ++ show intB,
+        liftD2 @Int @String a b $ \intA strB -> show intA ++ strB
+      ]
 
 -- moar polymorphism!
 
@@ -84,7 +83,8 @@ type MonoidAndEq a = (Monoid a, Eq a)
 
 -- constraint synonym
 
-class    (Monoid a, Eq a) => MonoidEq a
+class (Monoid a, Eq a) => MonoidEq a
+
 instance (Monoid a, Eq a) => MonoidEq a
 
 shouldBeFalse :: Bool
@@ -94,26 +94,32 @@ shouldBeFalse =
 
 -- scoping information with existentials
 
-newtype ST s a = ST
-  { unsafeRunST :: a
-  }
+newtype ST s a
+  = ST
+      { unsafeRunST :: a
+      }
 
 instance Functor (ST s) where
   fmap f (ST a) = seq a . ST $ f a
 
 instance Applicative (ST s) where
+
   pure = ST
+
   ST f <*> ST a = seq f . seq a . ST $ f a
 
 instance Monad (ST s) where
+
   return = pure
+
   ST a >>= f = seq a $ f a
 
 -- mutable variables inside the ST "trick"
 
-newtype STRef s a = STRef
-  { unSTRef :: IORef a
-  }
+newtype STRef s a
+  = STRef
+      { unSTRef :: IORef a
+      }
 
 newSTRef :: a -> ST s (STRef s a)
 newSTRef = pure . STRef . unsafePerformIO . newIORef
@@ -139,5 +145,4 @@ safeExample = do
   ref <- newSTRef "hello"
   modifySTRef ref (++ " world")
   readSTRef ref
-
 -- runST safeExample // > "hello world"
