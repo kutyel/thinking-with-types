@@ -16,6 +16,7 @@
 
 module Chapter11 where
 
+import Chapter12 (FriendlyFindElem)
 import Data.Kind (Constraint, Type)
 import Data.Proxy (Proxy (..))
 import qualified Data.Vector as V
@@ -70,16 +71,31 @@ nil = OpenProduct V.empty
 data Key (key :: Symbol) = Key
 
 insert ::
-  Eval (UniqueKey key ts) ~ 'True =>
+  RequireUniqueKey (Eval (UniqueKey key ts)) key t ts =>
   Key key ->
   f t ->
   OpenProduct f ts ->
   OpenProduct f ('(key, t) ': ts)
 insert _ ft (OpenProduct v) = OpenProduct $ V.cons (Any ft) v
 
--- this could be prevented if the OpenProduct contained a Map instead of a Vector
 type UniqueKey (key :: k) (ts :: [(k, t)]) =
   Null =<< Filter (TyEq key <=< Fst) ts
+
+type family RequireUniqueKey (result :: Bool) (key :: Symbol) (t :: k) (ts :: [(Symbol, k)]) :: Constraint where
+  RequireUniqueKey 'True key t ts = ()
+  RequireUniqueKey 'False key t ts =
+    TypeError
+      ( 'Text "Attempting to add a field named `"
+          ':<>: 'Text key
+          ':<>: 'Text "` with type "
+          ':<>: 'ShowType t
+          ':<>: 'Text " to an OpenProduct."
+          ':$$: 'Text "But the OpenProduct already has a field `"
+          ':<>: 'Text key
+          ':<>: 'Text "` with type "
+          ':<>: 'ShowType (LookupType key ts)
+          ':$$: 'Text "Consider using `update` instead of `insert`."
+      )
 
 type FindElemR (key :: Symbol) (ts :: [(Symbol, k)]) =
   Eval (FromMaybe Stuck =<< FindIndex (TyEq key <=< Fst) ts)
@@ -105,7 +121,9 @@ type UpdateElem (key :: Symbol) (t :: k) (ts :: [(Symbol, k)]) =
 
 update ::
   forall key ts t f.
-  KnownNat (FindElemR key ts) =>
+  ( KnownNat (FriendlyFindElem "update" key ts),
+    KnownNat (FindElemR key ts)
+  ) =>
   Key key ->
   f t ->
   OpenProduct f ts ->
@@ -118,7 +136,9 @@ type DeleteElem (key :: Symbol) (ts :: [(Symbol, k)]) =
 
 delete ::
   forall key ts f.
-  KnownNat (FindElemR key ts) =>
+  ( KnownNat (FriendlyFindElem "delete" key ts),
+    KnownNat (FindElemR key ts)
+  ) =>
   Key key ->
   OpenProduct f ts ->
   OpenProduct f (Eval (DeleteElem key ts))
