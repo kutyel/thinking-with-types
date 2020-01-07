@@ -41,7 +41,7 @@ data Foo a b c
   = F0
   | F1 a
   | F2 b c
-  deriving (Generic)
+  deriving (Generic, MyEq) -- XDeriveAnyClass
 
 instance (Eq a, Eq b, Eq c) => Eq (Foo a b c) where
   (==) = genericEq
@@ -101,3 +101,21 @@ instance GexNihilo (a :*: b) where
 
 instance GexNihilo a => GexNihilo (M1 _x _y a) where -- metadata
   gexNihilo = fmap M1 gexNihilo
+
+-- typeclasses we defined ourselves
+class MyEq a where
+
+  eq :: a -> a -> Bool
+
+  default eq :: (Generic a, GEq (Rep a)) => a -> a -> Bool -- XDefaultSignatures
+  eq a b = geq (from a) (from b)
+
+-- using generic metadata
+data Person
+  = Person
+      { name :: String,
+        age :: Int,
+        phone :: Maybe String,
+        permissions :: [Bool]
+      }
+  deriving (Generic)
