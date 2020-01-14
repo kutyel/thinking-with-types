@@ -17,6 +17,8 @@
 
 module Chapter13 where
 
+-- Generics
+
 import Control.Monad.Writer
 import Data.Aeson ((.=), ToJSON, Value (..), object)
 import Data.Aeson.Encode.Pretty (encodePretty)

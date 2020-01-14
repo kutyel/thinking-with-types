@@ -21,7 +21,9 @@ executable haskell
                      , aeson-pretty
                      , bytestring
                      , containers
+                     , do-notation
                      , first-class-families
+                     , indexed
                      , inspection-testing
                      , mtl
                      , QuickCheck
