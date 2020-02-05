@@ -1,11 +1,15 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
@@ -21,25 +25,25 @@ import Data.Singletons.Prelude
 import Data.Singletons.TH
 import Unsafe.Coerce (unsafeCoerce)
 
--- singletons [d|
---   data TimeOfDay
---     = Morning
---     | Afternoon
---     | Evening
---     | Night
---     deriving (Eq, Ord, Show)
---   |]
+singletons [d|
+  data TimeOfDay
+    = Morning
+    | Afternoon
+    | Evening
+    | Night
+    deriving (Eq, Ord, Show)
+  |]
 
 -- data Decision a
 --   = Proved a
 --   | Disproved (a -> Void)
 
-instance (Eq (Demote k), SingKind k)
-    => SDecide k where
-  a %~ b =
-    if fromSing a == fromSing b
-      then Proved $ unsafeCoerce Refl
-      else Disproved $ const undefined
+-- instance (Eq (Demote k), SingKind k)
+--     => SDecide k where
+--   a %~ b =
+--     if fromSing a == fromSing b
+--       then Proved $ unsafeCoerce Refl
+--       else Disproved $ const undefined
 
 -- instance SDecide Bool where
 --   STrue %~ STrue = Proved Refl
@@ -115,3 +119,47 @@ instance ( Dict1 Eq (f :: k -> Type)
           Dict -> fa `compare` fb
       Disproved _ ->
         fromSing sa `compare` fromSing sb
+
+-- structured logging
+
+singletons [d|
+  data LogType
+    = JsonMsg
+    | TextMsg
+    deriving (Eq, Ord, Show)
+  |]
+
+data family LogMsg (msg :: LogType)
+
+data instance LogMsg 'JsonMsg = Json Value
+  deriving (Eq, Show)
+
+data instance LogMsg 'TextMsg = Text String
+  deriving (Eq, Show)
+
+instance (c (LogMsg 'JsonMsg), c (LogMsg 'TextMsg))
+    => Dict1 c LogMsg where
+  dict1 SJsonMsg = Dict
+  dict1 STextMsg = Dict
+
+logs :: [Sigma LogMsg]
+logs = [
+    toSigma $ Text "hello"
+    , toSigma $ Json $
+      object ["world" .= (5 :: Int)]
+    , toSigma $ Text "structured logging is cool"
+  ]
+
+showLogs :: [Sigma LogMsg] -> [String]
+showLogs = fmap $ withSigma $ \sa fa ->
+  case dict1 @Show @LogMsg sa of
+    Dict -> show fa
+
+catSigmas
+  :: forall k (a :: k) f. (SingI a, SDecide k)
+  => [Sigma f]
+  -> [f a]
+catSigmas = mapMaybe fromSigma
+
+jsonLogs :: [LogMsg 'JsonMsg]
+jsonLogs = catSigmas logs
