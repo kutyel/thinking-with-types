@@ -100,3 +100,18 @@ instance ( Dict1 Show (f :: k -> Type)
           , show fa
           , ")"
         ]
+
+-- exercise 15.5-i
+instance ( Dict1 Eq (f :: k -> Type)
+         , Dict1 Ord f
+         , SDecide k
+         , SingKind k
+         , Ord (Demote k)
+         ) => Ord (Sigma f) where
+  Sigma sa fa `compare` Sigma sb fb =
+    case sa %~ sb of
+      Proved Refl ->
+        case dict1 @Ord @f sa of
+          Dict -> fa `compare` fb
+      Disproved _ ->
+        fromSing sa `compare` fromSing sb
