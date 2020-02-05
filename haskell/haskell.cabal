@@ -27,7 +27,7 @@ executable haskell
                      , indexed
                      , inspection-testing
                      , mtl
-                     , QuickCheck
+                     , singletons
                      , text
                      , transformers
                      , vector

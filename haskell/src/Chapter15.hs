@@ -18,8 +18,6 @@ import Data.Constraint (Dict (..))
 import Data.Foldable (for_)
 import Data.Kind (Type)
 import Data.Typeable
-import Data.Void
-import Unsafe.Coerce (unsafeCoerce)
 
 data SBool (b :: Bool) where
   STrue :: SBool 'True
@@ -153,5 +151,3 @@ instance SingI '[] where
 
 instance (SingI h, SingI t) => SingI (h ': t) where
   sing = SCons sing sing
-
--- the singletons package
