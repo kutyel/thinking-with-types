@@ -146,3 +146,12 @@ instance (k ~ Demote k, SingKind k)
     withSomeSing (toSing t) $ \st -> SomeSing $ SCons sh st
   fromSing SNil = []
   fromSing (SCons sh st) = fromSing sh : fromSing st
+
+-- exercise 15.3-i
+instance SingI '[] where
+  sing = SNil
+
+instance (SingI h, SingI t) => SingI (h ': t) where
+  sing = SCons sing sing
+
+-- the singletons package
