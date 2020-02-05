@@ -20,6 +20,7 @@ executable haskell
                      , aeson
                      , aeson-pretty
                      , bytestring
+                     , constraints
                      , containers
                      , do-notation
                      , first-class-families
