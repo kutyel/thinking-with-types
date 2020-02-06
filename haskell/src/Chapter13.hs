@@ -127,9 +127,7 @@ instance GexNihilo a => GexNihilo (M1 _x _y a) where -- metadata
 
 -- typeclasses we defined ourselves
 class MyEq a where
-
   eq :: a -> a -> Bool
-
   default eq :: (Generic a, GEq (Rep a)) => a -> a -> Bool -- XDefaultSignatures
   eq a b = geq (from a) (from b)
 

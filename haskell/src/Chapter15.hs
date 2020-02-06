@@ -1,13 +1,13 @@
-{-# language ConstraintKinds #-}
-{-# language DataKinds #-}
-{-# language FlexibleContexts #-}
-{-# language GADTs #-}
-{-# language PolyKinds #-}
-{-# language RankNTypes #-}
-{-# language ScopedTypeVariables #-}
-{-# language TypeApplications #-}
-{-# language TypeFamilyDependencies #-}
-{-# language TypeOperators #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Chapter15 where
 
@@ -30,10 +30,10 @@ fromSBool SFalse = False
 data SomeSBool where
   SomeSBool :: SBool b -> SomeSBool
 
-withSomeSBool
-  :: SomeSBool
-  -> (forall (b :: Bool). SBool b -> r)
-  -> r
+withSomeSBool ::
+  SomeSBool ->
+  (forall (b :: Bool). SBool b -> r) ->
+  r
 withSomeSBool (SomeSBool s) f = f s
 
 toSBool :: Bool -> SomeSBool
@@ -42,8 +42,9 @@ toSBool False = SomeSBool SFalse
 
 -- ad-hoc implementation
 
-class Monad (LogginMonad b)
-    => MonadLogging (b :: Bool) where
+class
+  Monad (LogginMonad b) =>
+  MonadLogging (b :: Bool) where
   type LogginMonad b = (r :: Type -> Type) | r -> b
   logMsg :: String -> LogginMonad b ()
   runLogging :: LogginMonad b a -> IO a
@@ -83,10 +84,10 @@ data family Sing (a :: k)
 data SomeSing k where
   SomeSing :: Sing (a :: k) -> SomeSing k
 
-withSomeSing
-  :: SomeSing k
-  -> (forall (a :: k). Sing a -> r)
-  -> r
+withSomeSing ::
+  SomeSing k ->
+  (forall (a :: k). Sing a -> r) ->
+  r
 withSomeSing (SomeSing s) f = f s
 
 class SingKind k where
@@ -124,8 +125,10 @@ instance SingI a => SingI ('Just a) where
 instance SingI 'Nothing where
   sing = SNothing
 
-instance (k ~ Demote k, SingKind k)
-    => SingKind (Maybe k) where
+instance
+  (k ~ Demote k, SingKind k) =>
+  SingKind (Maybe k)
+  where
   type Demote (Maybe k) = Maybe k
   toSing (Just a) = withSomeSing (toSing a) $ SomeSing . SJust
   toSing Nothing = SomeSing SNothing
@@ -136,8 +139,10 @@ data instance Sing (a :: [k]) where
   SNil :: Sing '[]
   SCons :: Sing (h :: k) -> Sing (t :: [k]) -> Sing (h ': t)
 
-instance (k ~ Demote k, SingKind k)
-    => SingKind [k] where
+instance
+  (k ~ Demote k, SingKind k) =>
+  SingKind [k]
+  where
   type Demote [k] = [k]
   toSing [] = SomeSing SNil
   toSing (h : t) = withSomeSing (toSing h) $ \sh ->

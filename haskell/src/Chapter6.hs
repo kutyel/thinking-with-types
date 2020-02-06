@@ -38,14 +38,12 @@ instance Functor Cont where
 
 -- exercise 6.4-ii
 instance Applicative Cont where
-
   pure a = Cont ($ a)
 
   Cont f <*> Cont a = Cont (f . (a .) . (.))
 
 -- exercise 6.4-ii
 instance Monad Cont where
-
   return = pure
 
   Cont m >>= f = Cont (m . flip (unCont . f))
@@ -79,13 +77,11 @@ instance Monad m => Functor (ContT m) where
   fmap f (ContT c) = ContT $ \c' -> c (c' . f)
 
 instance Monad m => Applicative (ContT m) where
-
   pure a = ContT $ \c -> c a
 
   ContT f <*> ContT a = ContT $ \br -> f $ \ab -> a (br . ab)
 
 instance Monad m => Monad (ContT m) where
-
   return = pure
 
   ContT m >>= f = ContT $ \c -> m $ \a -> unContT (f a) c
